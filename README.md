@@ -39,3 +39,62 @@ dependencias.
     </dependency>
 </dependencies>
 ````
+
+## ¿Qué son las rutas en Apache Camel?
+
+Las rutas de `Camel` son la columna vertebral de `Apache Camel` y definen cómo los mensajes se mueven desde una fuente
+`(endpoint)` hacia un destino, pasando por distintas transformaciones y procesamientos.
+
+En una `ruta Camel`, especificas lo siguiente:
+
+1. `Fuentes de entrada`: De dónde provienen los mensajes, como colas de mensajes, archivos, bases de datos, APIs, etc.
+
+2. `Procesos intermedios`: Los componentes que transforman, filtran, enrutan o de alguna forma procesan los mensajes
+   mientras pasan por la ruta.
+
+3. `Destinos`: A dónde se envían los mensajes después de ser procesados.
+
+En resumen, una `ruta de Camel` es una representación declarativa del `flujo de mensajes` dentro de tu aplicación.
+
+## Paso 03. Creando tu primera ruta Apache Camel
+
+A continuación realizaremos un ejemplo para ver nuestro primer acercamiento a las rutas de camel con spring boot. Así
+que en nuestro microservicio `camel-microservice-a` creamos una clase llamada `MyFirstTimerRoute` e implementamos el
+siguiente código.
+
+````java
+
+@Component
+public class MyFirstTimerRoute extends RouteBuilder {
+    @Override
+    public void configure() throws Exception {
+        from("timer:first-timer")
+                .transform().constant("Time now is " + LocalDateTime.now())
+                .to("log:first-timer");
+    }
+}
+````
+
+- La clase `MyFirstTimerRoute` extiende de `RouteBuilder`, que es la base para definir las `rutas en Camel`.
+- `configure()`, es donde defines las rutas Camel.
+- `from("timer:first-timer")`, esta es la fuente de la ruta. Aquí, estás utilizando un componente de temporizador
+  `(timer)` llamado `first-timer` que dispara eventos en intervalos de tiempo definidos (por defecto, cada segundo).
+- `.transform().constant("Time now is " + LocalDateTime.now())`, transforma el mensaje del temporizador en una cadena
+  constante que muestra la hora actual.
+- `.to("log:first-timer")`, envía el mensaje transformado a un componente de log `(log)`. Esto básicamente registra el
+  mensaje en los logs con la categoría `first-timer`.
+
+Al ejecutar nuestro `camel-microservice-a` veremos en consola la ejecución continua del siguiente log.
+
+````bash
+[camel-microservice-a] [r://first-timer] first-timer                              : Exchange[ExchangePattern: InOnly, BodyType: String, Body: Time now is 2024-11-03T12:59:41.942807200]
+[camel-microservice-a] [r://first-timer] first-timer                              : Exchange[ExchangePattern: InOnly, BodyType: String, Body: Time now is 2024-11-03T12:59:41.942807200]
+[camel-microservice-a] [r://first-timer] first-timer                              : Exchange[ExchangePattern: InOnly, BodyType: String, Body: Time now is 2024-11-03T12:59:41.942807200]
+[camel-microservice-a] [r://first-timer] first-timer                              : Exchange[ExchangePattern: InOnly, BodyType: String, Body: Time now is 2024-11-03T12:59:41.942807200]
+[camel-microservice-a] [r://first-timer] first-timer                              : Exchange[ExchangePattern: InOnly, BodyType: String, Body: Time now is 2024-11-03T12:59:41.942807200]
+...
+````
+
+En resumen, este ejemplo configura una ruta que se activa por un temporizador, transforma el mensaje para incluir la
+hora actual y lo registra en los logs.
+
