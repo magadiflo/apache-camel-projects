@@ -98,3 +98,51 @@ Al ejecutar nuestro `camel-microservice-a` veremos en consola la ejecución cont
 En resumen, este ejemplo configura una ruta que se activa por un temporizador, transforma el mensaje para incluir la
 hora actual y lo registra en los logs.
 
+## Paso 04. Usando Beans de Spring para la transformación en rutas de Camel
+
+Podemos crear un bean de spring, por ejemplo una clase anotada con `@Component` para que realice la transformación,
+es decir, tener la lógica separada y no hardcodeada como en el ejemplo anterior.
+
+En el siguiente ejemplo creamos la clase `CurrentTimeBean` anotada con `@Component` para poder inyectarlo en la clase
+`MyFirstTimerRoute`.
+
+Si no hubiéramos inyectado el componente `CurrentTimeBean`, podríamos haber usado el nombre del bean dentro del
+método, de la siguiente manera `.bean("currentTimeBean")`, pero según el instructor esa es una muy mala práctica, ya
+que si por alguna razón cambia el bean, tendríamos que ir a buscar a los métodos `bean()` para hacer el cambio.
+
+En nuestro ejemplo, estamos haciendo uso de la inyección de dependencia para usar el objeto inyectado dentro del
+método `.bean(this.currentTimeBean, "getCurrentTime")`.
+
+````java
+
+@RequiredArgsConstructor
+@Component
+public class MyFirstTimerRoute extends RouteBuilder {
+
+    private final CurrentTimeBean currentTimeBean;
+
+    @Override
+    public void configure() throws Exception {
+        from("timer:first-timer")
+                .bean(this.currentTimeBean, "getCurrentTime")
+                .to("log:first-timer");
+    }
+}
+
+@Component
+class CurrentTimeBean {
+    public String getCurrentTime() {
+        return "Time now is " + LocalDateTime.now();
+    }
+}
+````
+
+Otro punto importante es observar que en el método `bean`, además de definir el objeto inyectado, estamos definiéndole
+el nombre del método que ejecutaremos. Esto, solo si nuestro `CurrentTimeBean` tiene más de un método. En mi caso, lo
+dejaré con el método explícitamente.
+
+**Nota**
+
+> Solo por tema de simplicidad es que creé la clase `CurrentTimeBean` dentro de la misma clase `MyFirstTimerRoute`,
+> pero en un mundo real, todo debería estar separado, en su propio archivo.
+
