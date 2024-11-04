@@ -146,3 +146,71 @@ dejaré con el método explícitamente.
 > Solo por tema de simplicidad es que creé la clase `CurrentTimeBean` dentro de la misma clase `MyFirstTimerRoute`,
 > pero en un mundo real, todo debería estar separado, en su propio archivo.
 
+Hay dos tipos de opciones que puede hacer dentro de un ruta específica:
+
+1. `Procesamiento`, cuando recibo algún mensaje, quiero hacer alguna operación o algo que no suponga un cambio en el
+   cuerpo del propio mensaje.
+
+2. `Transformación`, cuando hacemos algo que cambia el cuerpo del mensaje.
+
+Para este nuevo ejemplo vamos a crear un nuevo componente llamado `SimpleLoggingProceesing` y lo vamos a inyectar en
+la clase `MyFirstTimerRoute`.
+
+````java
+
+@RequiredArgsConstructor
+@Component
+public class MyFirstTimerRoute extends RouteBuilder {
+
+    private final CurrentTimeBean currentTimeBean;
+    private final SimpleLoggingProceesing simpleLoggingProceesing;
+
+    @Override
+    public void configure() throws Exception {
+        from("timer:first-timer")
+                .log("${body}")
+                .bean(this.currentTimeBean, "getCurrentTime")
+                .log("${body}")
+                .bean(this.simpleLoggingProceesing)
+                .to("log:first-timer");
+    }
+}
+
+// Transformación
+@Component
+class CurrentTimeBean {
+    public String getCurrentTime() {
+        return "Time now is " + LocalDateTime.now();
+    }
+}
+
+//Procesamiento
+@Slf4j
+@Component
+class SimpleLoggingProceesing {
+    public void process(String message) {
+        log.info("Message: {}", message);
+    }
+}
+````
+
+Entonces, cuando hablamos de `transformación`, nos referimos al cambio que vamos a aplicar al cuerpo del mensaje, tal
+como se ve en el bean `CurrentTimeBean` donde retornamos una cadena en el método `getCurrentTime`. Sin embargo, en
+la clase `SimpleLoggingProceesing` únicamente estamos imprimiendo en consola el mensaje que llega por parámetro, es
+decir, no se está realizando ninguna transformación de los datos, sino más bien, estamos `procesando`.
+
+Si ejecutamos la aplicación veremos que los siguientes registros se repiten constantemente.
+
+````bash
+[camel-microservice-a] [r://first-timer] route1                                   : null
+[camel-microservice-a] [r://first-timer] route1                                   : Time now is 2024-11-03T20:23:18.672128400
+[camel-microservice-a] [r://first-timer] d.m.a.routes.a.SimpleLoggingProceesing   : Message: Time now is 2024-11-03T20:23:18.672128400
+[camel-microservice-a] [r://first-timer] first-timer                              : Exchange[ExchangePattern: InOnly, BodyType: String, Body: Time now is 2024-11-03T20:23:18.672128400]
+````
+
+La primera línea corresponde al primer `.log("${body}")`, la segunda línea corresponde al segundo `.log("${body}")`, la
+tercera línea corresponde al procesamiento que se realiza en el bean `SimpleLoggingProceesing` en su método
+`process()`. Finalmente, la cuarta línea corresponde al método `.to("log:first-timer")`.
+
+En el primer bean `(CurrentTimeBean)` hay una `transformación`, mientras que en el segundo bean
+`(SimpleLoggingProceesing)` hay un `procesamiento`. 
