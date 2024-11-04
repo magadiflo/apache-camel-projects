@@ -7,8 +7,7 @@ import org.springframework.stereotype.Component;
 public class ActiveMqSenderRoute extends RouteBuilder {
     @Override
     public void configure() throws Exception {
-        from("timer:active-mq-timer?period=10000")
-                .transform().constant("Mi mensaje para Active MQ")
+        from("file:files/json")
                 .log("${body}")
                 .to("activemq:my-activemq-queue");
     }
