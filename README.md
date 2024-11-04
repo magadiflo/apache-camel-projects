@@ -292,3 +292,62 @@ a lo que se enumeró en el método `configure()`.
 >
 > La `transformación`, se puede realizar con el método `transform()` o con un `bean()`.<br>
 > El `procesamiento`, se puede realizar con el método `process()` o con un `bean()`.
+
+## Paso 06. Creando una ruta de Camel para jugar con archivos
+
+Como vamos a crear una nueva clase en este apartado, comentaré la anotación `@Component` de la clase
+`MyFirstTimerRoute` para que no se ejecute en automático su código.
+
+Ahora sí, crearemos la clase de componente `MyFileRoute` quien va a extender de la clase abstracta `RouteBuilder`.
+
+````java
+
+@Component
+public class MyFileRoute extends RouteBuilder {
+    @Override
+    public void configure() throws Exception {
+        from("file:files/input")
+                .log("${file:name}")
+                .to("file:files/output");
+    }
+}
+````
+
+- La clase `MyFileRoute` extiende `RouteBuilder`, lo cual te permite definir `rutas en Camel`.
+- El método `configure()` permite definir las rutas.
+- `from("file:files/input")`, esta es la fuente de la ruta. Indica que los archivos que se encuentran en la carpeta
+  `files/input` serán procesados por esta ruta.
+- `.log("${file:name}")`, esta línea registra `(log)` el nombre del archivo que está siendo procesado, utilizando la
+  expresión `file:name` para obtener el nombre del archivo.
+- `.to("file:files/output")`, esta es la ruta de destino. Indica que los archivos procesados se moverán a la carpeta
+  `files/output`.
+
+En resumen, este código toma archivos de la carpeta `files/input`, registra sus nombres en los logs, y luego los mueve
+a la carpeta `files/output`.
+
+Si es la primera vez que ejecutamos la aplicación y aún no tenemos el directorio `/files`, la aplicación lo creará
+en la raíz de nuestro proyecto principal `apache-camel-projects`. Dentro de dicho directorio, inicialmente creará el
+directorio `/input`. Cuando agreguemos algún archivo al directorio `/input`, automáticamente se creará el directorio
+`/output` donde se moverá dicho archivo y en el directorio `/input` se creará un directorio oculto `.camel`.
+
+El directorio `.camel` es utilizado por `Apache Camel` para gestionar el procesamiento de archivos. Cuando `Camel`
+procesa archivos desde una carpeta de entrada, crea estos directorios ocultos para almacenar temporalmente los archivos
+que está procesando. Esto ayuda a evitar la duplicación o el reprocesamiento de los mismos archivos si el proceso se
+interrumpe o reinicia.
+
+Así que básicamente, ese directorio oculto `.camel` actúa como un área de trabajo temporal para los archivos que `Camel`
+mueve o procesa.
+
+Ahora, agreguemos varios archivos al directorio `/input`, veremos que los nombres de dichos archivos se muestran en
+consola y que además, los archivos son movidos al directorio `/output`.
+
+````bash
+[camel-microservice-a] [e://files/input] route1                                   : 1000.json
+[camel-microservice-a] [e://files/input] route1                                   : 1000.xml
+[camel-microservice-a] [e://files/input] route1                                   : 1001.json
+[camel-microservice-a] [e://files/input] route1                                   : 1001.xml
+[camel-microservice-a] [e://files/input] route1                                   : 1002.json
+[camel-microservice-a] [e://files/input] route1                                   : 1002.xml
+[camel-microservice-a] [e://files/input] route1                                   : data.csv
+[camel-microservice-a] [e://files/input] route1                                   : single-line.csv
+````

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
-@Component
+//@Component
 public class MyFirstTimerRoute extends RouteBuilder {
 
     private final CurrentTimeBean currentTimeBean;
