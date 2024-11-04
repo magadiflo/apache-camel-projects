@@ -213,4 +213,82 @@ tercera línea corresponde al procesamiento que se realiza en el bean `SimpleLog
 `process()`. Finalmente, la cuarta línea corresponde al método `.to("log:first-timer")`.
 
 En el primer bean `(CurrentTimeBean)` hay una `transformación`, mientras que en el segundo bean
-`(SimpleLoggingProceesing)` hay un `procesamiento`. 
+`(SimpleLoggingProceesing)` hay un `procesamiento`.
+
+## Paso 05. Procesamiento mediante procesadores Camel en rutas Camel
+
+En este apartado vamos a utilizar el método `process()` de Camel, como una alternativa a realizar los procesamientos.
+Así que, crearemos una clase llamada `SimpleLoggingProcessor` quien implementará la interfaz `Processor` y en el método
+sobreescrito definiremos el procesamiento.
+
+Posteriormente, en nuestra configuración principal de camel agregaremos `.process(new SimpleLoggingProcessor())` donde
+hacemos referencia a la clase `SimpleLoggingProcessor`.
+
+````java
+
+@RequiredArgsConstructor
+@Component
+public class MyFirstTimerRoute extends RouteBuilder {
+
+    private final CurrentTimeBean currentTimeBean;
+    private final SimpleLoggingProceesing simpleLoggingProceesing;
+
+    @Override
+    public void configure() throws Exception {
+        from("timer:first-timer")
+                .log("${body}")                                     // (1)
+                .bean(this.currentTimeBean, "getCurrentTime")
+                .log("${body}")                                     // (2)
+                .bean(this.simpleLoggingProceesing)                 // (3)
+                .log("${body}")                                     // (4)
+                .process(new SimpleLoggingProcessor())              // (5)
+                .to("log:first-timer");                             // (6)
+    }
+}
+
+// Transformación
+@Component
+class CurrentTimeBean {
+    public String getCurrentTime() {
+        return "Time now is " + LocalDateTime.now();
+    }
+}
+
+//Procesamiento
+@Slf4j
+@Component
+class SimpleLoggingProceesing {
+    public void process(String message) {
+        log.info("Message: {}", message);
+    }
+}
+
+@Slf4j
+@Component
+class SimpleLoggingProcessor implements Processor {
+
+    @Override
+    public void process(Exchange exchange) throws Exception {
+        log.info("Processor: {}", exchange.getMessage().getBody());
+    }
+}
+````
+
+Si luego ejecutamos la aplicación veremos en consola el siguiente resultado, donde el número de línea corresponde
+a lo que se enumeró en el método `configure()`.
+
+````bash
+(1)[camel-microservice-a] [r://first-timer] route1                                   : null
+(2)[camel-microservice-a] [r://first-timer] route1                                   : Time now is 2024-11-04T09:36:04.407947200
+(3)[camel-microservice-a] [r://first-timer] d.m.a.routes.a.SimpleLoggingProceesing   : Message: Time now is 2024-11-04T09:36:04.407947200
+(4)[camel-microservice-a] [r://first-timer] route1                                   : Time now is 2024-11-04T09:36:04.407947200
+(5)[camel-microservice-a] [r://first-timer] d.m.app.routes.a.SimpleLoggingProcessor  : Processor: Time now is 2024-11-04T09:36:04.407947200
+(6)[camel-microservice-a] [r://first-timer] first-timer                              : Exchange[ExchangePattern: InOnly, BodyType: String, Body: Time now is 2024-11-04T09:36:04.407947200]
+````
+
+**Resumen**
+
+> En una ruta camel hay dos procesos intermedios que se pueden realizar: `transformación` o `procesamiento`.
+>
+> La `transformación`, se puede realizar con el método `transform()` o con un `bean()`.<br>
+> El `procesamiento`, se puede realizar con el método `process()` o con un `bean()`.
