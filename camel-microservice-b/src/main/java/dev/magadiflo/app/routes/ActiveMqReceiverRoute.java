@@ -7,18 +7,22 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+
 @Slf4j
 @RequiredArgsConstructor
 @Component
 public class ActiveMqReceiverRoute extends RouteBuilder {
 
     private final MyCurrencyExchangeProcessor myCurrencyExchangeProcessor;
+    private final MyCurrencyExchangeTransformer myCurrencyExchangeTransformer;
 
     @Override
     public void configure() throws Exception {
         from("activemq:my-activemq-queue")
                 .unmarshal().json(JsonLibrary.Jackson, CurrencyExchange.class)
                 .bean(this.myCurrencyExchangeProcessor)
+                .bean(this.myCurrencyExchangeTransformer)
                 .to("log:received-message-from-active-mq");
     }
 }
@@ -31,4 +35,15 @@ class MyCurrencyExchangeProcessor {
         log.info("Realiza procesamiento con currencyExchange.getConversionMultiple() cuyo valor es {}", currencyExchange.getConversionMultiple());
     }
 
+}
+
+@Slf4j
+@Component
+class MyCurrencyExchangeTransformer {
+
+    public CurrencyExchange processMessage(CurrencyExchange currencyExchange) {
+        BigDecimal multiply = currencyExchange.getConversionMultiple().multiply(BigDecimal.TEN);
+        currencyExchange.setConversionMultiple(multiply);
+        return currencyExchange;
+    }
 }
