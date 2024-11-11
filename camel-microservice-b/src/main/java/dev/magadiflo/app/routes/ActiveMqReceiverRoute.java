@@ -4,7 +4,6 @@ import dev.magadiflo.app.models.CurrencyExchange;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.model.dataformat.JsonLibrary;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -20,9 +19,7 @@ public class ActiveMqReceiverRoute extends RouteBuilder {
     @Override
     public void configure() throws Exception {
         from("activemq:my-activemq-xml-queue")
-//                .unmarshal().json(JsonLibrary.Jackson, CurrencyExchange.class)
-//                .bean(this.myCurrencyExchangeProcessor)
-//                .bean(this.myCurrencyExchangeTransformer)
+                .unmarshal().jacksonXml(CurrencyExchange.class)
                 .to("log:received-message-from-active-mq");
     }
 }
