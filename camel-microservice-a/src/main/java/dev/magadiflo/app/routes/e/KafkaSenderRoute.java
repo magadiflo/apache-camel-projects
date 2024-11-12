@@ -1,14 +1,14 @@
-package dev.magadiflo.app.routes.d;
+package dev.magadiflo.app.routes.e;
 
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.stereotype.Component;
 
-//@Component
-public class ActiveMqXmlSenderRoute extends RouteBuilder {
+@Component
+public class KafkaSenderRoute extends RouteBuilder {
     @Override
     public void configure() throws Exception {
-        from("file:files/xml")
+        from("file:files/json")
                 .log("${body}")
-                .to("activemq:my-activemq-xml-queue");
+                .to("kafka:my-kafka-topic");
     }
 }
