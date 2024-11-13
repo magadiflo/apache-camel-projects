@@ -3,7 +3,7 @@ package dev.magadiflo.app.routes;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 public class RestApiConsumerRoute extends RouteBuilder {
     @Override
     public void configure() throws Exception {

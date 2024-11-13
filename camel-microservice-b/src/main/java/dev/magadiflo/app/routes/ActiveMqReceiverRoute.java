@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 
 @Slf4j
 @RequiredArgsConstructor
-@Component
+//@Component
 public class ActiveMqReceiverRoute extends RouteBuilder {
 
     private final MyCurrencyExchangeProcessor myCurrencyExchangeProcessor;
