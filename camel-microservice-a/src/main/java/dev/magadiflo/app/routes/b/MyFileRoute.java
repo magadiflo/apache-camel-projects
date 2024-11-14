@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 @RequiredArgsConstructor
-@Component
+//@Component
 public class MyFileRoute extends RouteBuilder {
 
     private final DeciderBean deciderBean;
