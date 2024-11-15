@@ -7,8 +7,9 @@ import org.springframework.stereotype.Component;
 public class EipPatternsRoute extends RouteBuilder {
     @Override
     public void configure() throws Exception {
-        from("timer:multicast?period=10000")
-                .multicast()
-                .to("log:registro-01", "log:registro-02", "log:registro-03");
+        from("file:files/csv")
+                .unmarshal().csv()
+                .split(body())
+                .to("log:split-files");
     }
 }

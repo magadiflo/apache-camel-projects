@@ -45,6 +45,11 @@
             <artifactId>camel-http-starter</artifactId>
             <version>4.8.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-csv-starter</artifactId>
+            <version>4.8.1</version>
+        </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
